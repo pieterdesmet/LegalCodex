@@ -38,7 +38,12 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
       name: formData.get("name"),
       email: formData.get("email"),
       phone: formData.get("phone"),
-      address: formData.get("address")
+      address: formData.get("address"),
+      vatNumber: formData.get("vatNumber"),
+      companyNumber: formData.get("companyNumber"),
+      contactFirstName: formData.get("contactFirstName"),
+      contactLastName: formData.get("contactLastName"),
+      contactEmail: formData.get("contactEmail")
     });
 
     if (!parsed.success) {
@@ -56,7 +61,12 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
         ...parsed.data,
         email: parsed.data.email || null,
         phone: parsed.data.phone || null,
-        address: parsed.data.address || null
+        address: parsed.data.address || null,
+        vatNumber: parsed.data.vatNumber || null,
+        companyNumber: parsed.data.companyNumber || null,
+        contactFirstName: parsed.data.contactFirstName || null,
+        contactLastName: parsed.data.contactLastName || null,
+        contactEmail: parsed.data.contactEmail || null
       }
     });
 
@@ -143,6 +153,26 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
           <div className="md:col-span-2">
             <label className="mb-2 block text-sm font-semibold text-slate-700">Adres</label>
             <input name="address" defaultValue={client.address ?? ""} className="ld-input" />
+          </div>
+          <div>
+            <label className="mb-2 block text-sm font-semibold text-slate-700">BTW-nummer</label>
+            <input name="vatNumber" defaultValue={client.vatNumber ?? ""} className="ld-input" />
+          </div>
+          <div>
+            <label className="mb-2 block text-sm font-semibold text-slate-700">Ondernemingsnummer</label>
+            <input name="companyNumber" defaultValue={client.companyNumber ?? ""} className="ld-input" />
+          </div>
+          <div>
+            <label className="mb-2 block text-sm font-semibold text-slate-700">Voornaam contactpersoon</label>
+            <input name="contactFirstName" defaultValue={client.contactFirstName ?? ""} className="ld-input" />
+          </div>
+          <div>
+            <label className="mb-2 block text-sm font-semibold text-slate-700">Naam contactpersoon</label>
+            <input name="contactLastName" defaultValue={client.contactLastName ?? ""} className="ld-input" />
+          </div>
+          <div className="md:col-span-2">
+            <label className="mb-2 block text-sm font-semibold text-slate-700">Email contactpersoon</label>
+            <input name="contactEmail" type="email" defaultValue={client.contactEmail ?? ""} className="ld-input" />
           </div>
           <div className="md:col-span-2 flex justify-end">
             <button className="ld-btn-primary" type="submit">

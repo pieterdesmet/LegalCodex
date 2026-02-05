@@ -7,7 +7,7 @@ export default async function SearchPage({ searchParams }: { searchParams: { q?:
 
   const q = searchParams.q?.trim() ?? "";
 
-  const [clients, dossiers, tasks, documents] = q
+  const [clients, dossiers, tasks, documents, templates, timeEntries, auditLogs] = q
     ? await Promise.all([
         prisma.client.findMany({
           where: {
@@ -15,7 +15,9 @@ export default async function SearchPage({ searchParams }: { searchParams: { q?:
             OR: [
               { name: { contains: q, mode: "insensitive" } },
               { email: { contains: q, mode: "insensitive" } },
-              { phone: { contains: q, mode: "insensitive" } }
+              { phone: { contains: q, mode: "insensitive" } },
+              { vatNumber: { contains: q, mode: "insensitive" } },
+              { contactEmail: { contains: q, mode: "insensitive" } }
             ]
           },
           take: 8,
@@ -57,15 +59,46 @@ export default async function SearchPage({ searchParams }: { searchParams: { q?:
           include: { dossier: true },
           take: 8,
           orderBy: { createdAt: "desc" }
+        }),
+        prisma.template.findMany({
+          where: {
+            OR: [
+              { name: { contains: q, mode: "insensitive" } },
+              { type: { contains: q, mode: "insensitive" } },
+              { body: { contains: q, mode: "insensitive" } }
+            ]
+          },
+          take: 8,
+          orderBy: { createdAt: "desc" }
+        }),
+        prisma.timeEntry.findMany({
+          where: {
+            OR: [{ description: { contains: q, mode: "insensitive" } }, { dossier: { title: { contains: q, mode: "insensitive" } } }],
+            dossier: { deletedAt: null }
+          },
+          include: { dossier: true, user: true },
+          take: 8,
+          orderBy: { createdAt: "desc" }
+        }),
+        prisma.auditLog.findMany({
+          where: {
+            OR: [
+              { entityId: { contains: q, mode: "insensitive" } },
+              { actor: { is: { name: { contains: q, mode: "insensitive" } } } }
+            ]
+          },
+          include: { actor: true },
+          take: 8,
+          orderBy: { createdAt: "desc" }
         })
       ])
-    : [[], [], [], []];
+    : [[], [], [], [], [], [], []];
 
   return (
     <div className="space-y-5">
       <div>
         <h1 className="ld-page-title">Zoeken</h1>
-        <p className="mt-1 text-base text-slate-500">Doorzoek cliënten, dossiers, taken en documenten</p>
+        <p className="mt-1 text-base text-slate-500">Doorzoek de volledige applicatie</p>
       </div>
 
       <form action="/search" method="get" className="ld-panel p-3">
@@ -126,6 +159,43 @@ export default async function SearchPage({ searchParams }: { searchParams: { q?:
                     {document.title}
                   </Link>
                   <p className="text-xs text-slate-500">{document.dossier.title}</p>
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          <section className="ld-panel p-5">
+            <h2 className="text-lg font-bold text-slate-800">Templates ({templates.length})</h2>
+            <ul className="mt-3 space-y-2">
+              {templates.map((template) => (
+                <li key={template.id} className="text-sm">
+                  <p className="font-semibold text-slate-800">{template.name}</p>
+                  <p className="text-xs text-slate-500">{template.type}</p>
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          <section className="ld-panel p-5">
+            <h2 className="text-lg font-bold text-slate-800">Tijdsregistraties ({timeEntries.length})</h2>
+            <ul className="mt-3 space-y-2">
+              {timeEntries.map((entry) => (
+                <li key={entry.id}>
+                  <Link href="/time-tracking" className="text-sm font-semibold text-[#1f45b2] hover:underline">
+                    {entry.description}
+                  </Link>
+                  <p className="text-xs text-slate-500">{entry.dossier.title} · {entry.user.name}</p>
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          <section className="ld-panel p-5 lg:col-span-2">
+            <h2 className="text-lg font-bold text-slate-800">Audit logs ({auditLogs.length})</h2>
+            <ul className="mt-3 space-y-2">
+              {auditLogs.map((item) => (
+                <li key={item.id} className="text-sm text-slate-700">
+                  <span className="font-semibold">{item.action}</span> {item.entityType} ({item.entityId}) · {item.actor?.name ?? "Onbekend"}
                 </li>
               ))}
             </ul>

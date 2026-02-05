@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AITrigger } from "@prisma/client";
 import { addDays } from "@/lib/date";
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -39,6 +40,21 @@ function statusBadge(status: "OPEN" | "ON_HOLD" | "CLOSED") {
   return <span className="ld-badge bg-slate-200 text-slate-600">Afgesloten</span>;
 }
 
+function parseBriefing(outputJson: string) {
+  try {
+    const payload = JSON.parse(outputJson) as {
+      summary?: string;
+      confidence?: number;
+      risks?: Array<{ title?: string }>;
+      proposedTasks?: Array<{ title?: string }>;
+      suggestions?: Array<{ title?: string }>;
+    };
+    return payload;
+  } catch {
+    return null;
+  }
+}
+
 export default async function DashboardPage() {
   const user = await requireUser();
 
@@ -48,7 +64,7 @@ export default async function DashboardPage() {
   const startWeek = addDays(startToday, -7);
   const startMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-  const [openDossiers, openTasks, dueToday, recentDossiers, timeEntries, clientsCount, recentAudit] = await Promise.all([
+  const [openDossiers, openTasks, dueToday, recentDossiers, timeEntries, clientsCount, recentAudit, latestBriefingEvent] = await Promise.all([
     prisma.dossier.count({ where: { deletedAt: null, status: "OPEN" } }),
     prisma.task.count({ where: { status: { not: "DONE" }, dossier: { deletedAt: null } } }),
     prisma.task.findMany({
@@ -76,6 +92,11 @@ export default async function DashboardPage() {
       include: { actor: true },
       orderBy: { createdAt: "desc" },
       take: 6
+    }),
+    prisma.aIEvent.findFirst({
+      where: { trigger: { in: [AITrigger.DASHBOARD_BRIEFING, AITrigger.DEADLINE_SCAN, AITrigger.SUMMARY] } },
+      include: { dossier: true },
+      orderBy: { createdAt: "desc" }
     })
   ]);
 
@@ -83,6 +104,17 @@ export default async function DashboardPage() {
   const weekHours = sumHours(timeEntries.filter((entry) => entry.startAt >= startWeek));
   const monthHours = sumHours(timeEntries);
   const monthRevenue = monthHours * 125;
+  const briefingPayload = latestBriefingEvent ? parseBriefing(latestBriefingEvent.outputJson) : null;
+  const fallbackSummary =
+    dueToday.length > 0
+      ? `${dueToday.length} taken vragen aandacht binnen 7 dagen. Focus eerst op deadlines met hoogste prioriteit.`
+      : "Geen onmiddellijke deadline-risico's gedetecteerd. Dossiers lijken stabiel.";
+  const briefingSummary = briefingPayload?.summary || fallbackSummary;
+  const briefingConfidence = typeof briefingPayload?.confidence === "number" ? Math.round(briefingPayload.confidence * 100) : null;
+  const riskItems = (briefingPayload?.risks?.slice(0, 2).map((risk) => risk.title).filter(Boolean) as string[]) ?? [];
+  const taskItems = (briefingPayload?.proposedTasks?.slice(0, 2).map((task) => task.title).filter(Boolean) as string[]) ?? [];
+  const suggestionItems = (briefingPayload?.suggestions?.slice(0, 2).map((item) => item.title).filter(Boolean) as string[]) ?? [];
+  const briefingItems = [...riskItems, ...taskItems, ...suggestionItems].slice(0, 3);
 
   return (
     <div className="space-y-6">
@@ -114,6 +146,27 @@ export default async function DashboardPage() {
             ))}
           </ul>
         )}
+      </section>
+
+      <section className="ld-panel px-6 py-5">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-2xl font-bold text-slate-800">AI briefing</h2>
+          <p className="text-xs text-slate-500">Suggestie, nooit automatische beslissing</p>
+        </div>
+        <p className="mt-3 text-sm text-slate-700">{briefingSummary}</p>
+        {briefingItems.length > 0 ? (
+          <ul className="mt-3 space-y-1">
+            {briefingItems.map((item) => (
+              <li key={item} className="text-sm text-slate-600">• {item}</li>
+            ))}
+          </ul>
+        ) : null}
+        <div className="mt-4 flex flex-wrap items-center gap-4 text-xs text-slate-500">
+          <span>Confidence: {briefingConfidence !== null ? `${briefingConfidence}%` : "-"}</span>
+          <span>
+            Bronnen: {latestBriefingEvent ? `dossier:${latestBriefingEvent.dossier.title}, event:${latestBriefingEvent.id}` : "interne dashboarddata"}
+          </span>
+        </div>
       </section>
 
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-6">

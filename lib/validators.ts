@@ -7,15 +7,37 @@ export const loginSchema = z.object({
   password: z.string().min(4)
 });
 
-export const clientCreateSchema = z.object({
+const clientBaseSchema = z.object({
   type: z.enum(["PERSON", "COMPANY"]),
   name: z.string().min(1),
   email: z.string().email().optional().or(z.literal("")),
   phone: optionalString,
-  address: optionalString
+  address: optionalString,
+  vatNumber: optionalString,
+  companyNumber: optionalString,
+  contactFirstName: optionalString,
+  contactLastName: optionalString,
+  contactEmail: z.string().email().optional().or(z.literal(""))
 });
 
-export const clientUpdateSchema = clientCreateSchema.partial().refine(
+export const clientCreateSchema = clientBaseSchema.superRefine((value, ctx) => {
+  if (value.type === "COMPANY") {
+    if (!value.vatNumber) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["vatNumber"], message: "BTW-nummer is verplicht voor bedrijf" });
+    }
+    if (!value.contactFirstName) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["contactFirstName"], message: "Voornaam contactpersoon is verplicht" });
+    }
+    if (!value.contactLastName) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["contactLastName"], message: "Naam contactpersoon is verplicht" });
+    }
+    if (!value.contactEmail) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["contactEmail"], message: "Email contactpersoon is verplicht" });
+    }
+  }
+});
+
+export const clientUpdateSchema = clientBaseSchema.partial().refine(
   (value) => Object.keys(value).length > 0,
   "At least one field is required"
 );

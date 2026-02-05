@@ -58,7 +58,12 @@ async function main() {
       name: "Northwind Ventures",
       email: "legal@northwind.test",
       phone: "+1 555-0101",
-      address: "123 Main St, Springfield"
+      address: "123 Main St, Springfield",
+      vatNumber: "BE0123.456.789",
+      companyNumber: "0123.456.789",
+      contactFirstName: "Nora",
+      contactLastName: "Windsor",
+      contactEmail: "nora.windsor@northwind.test"
     }
   });
 

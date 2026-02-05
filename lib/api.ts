@@ -14,11 +14,11 @@ export async function requireApiUser() {
   return { error: null, user } as const;
 }
 
-export async function parseBody<T>(
+export async function parseBody<TSchema extends z.ZodTypeAny>(
   request: Request,
-  schema: z.ZodSchema<T>
+  schema: TSchema
 ): Promise<
-  | { data: T; error: null }
+  | { data: z.infer<TSchema>; error: null }
   | {
       data: null;
       error: Response;

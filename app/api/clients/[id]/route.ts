@@ -47,7 +47,12 @@ export async function PATCH(request: Request, { params }: { params: { id: string
       ...parsed.data,
       email: parsed.data.email || null,
       phone: parsed.data.phone || null,
-      address: parsed.data.address || null
+      address: parsed.data.address || null,
+      vatNumber: parsed.data.vatNumber || null,
+      companyNumber: parsed.data.companyNumber || null,
+      contactFirstName: parsed.data.contactFirstName || null,
+      contactLastName: parsed.data.contactLastName || null,
+      contactEmail: parsed.data.contactEmail || null
     }
   });
 

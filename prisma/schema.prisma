@@ -94,15 +94,20 @@ model User {
 }
 
 model Client {
-  id        String    @id @default(cuid())
-  type      ClientType
-  name      String
-  email     String?
-  phone     String?
-  address   String?
-  createdAt DateTime  @default(now())
-  deletedAt DateTime?
-  dossiers  Dossier[]
+  id               String    @id @default(cuid())
+  type             ClientType
+  name             String
+  email            String?
+  phone            String?
+  address          String?
+  vatNumber        String?
+  companyNumber    String?
+  contactFirstName String?
+  contactLastName  String?
+  contactEmail     String?
+  createdAt        DateTime  @default(now())
+  deletedAt        DateTime?
+  dossiers         Dossier[]
 }
 
 model Dossier {

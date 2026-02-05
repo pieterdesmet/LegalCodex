@@ -87,23 +87,19 @@ export default async function ClientsPage({
 
     const joinedAddress = [addressLine, [postcode, city].filter(Boolean).join(" ")].filter(Boolean).join(", ");
 
-    const extraLines: string[] = [];
-    if (flowType === "COMPANY") {
-      extraLines.push(`BTW: ${vatNumber}`);
-      if (companyNumber) extraLines.push(`Ondernemingsnummer: ${companyNumber}`);
-      extraLines.push(`Contactpersoon: ${contactFirstName} ${contactLastName}`);
-      extraLines.push(`Contact email: ${contactEmail}`);
-    }
-    if (notes) extraLines.push(`Notities: ${notes}`);
-
-    const address = [joinedAddress, ...extraLines].filter(Boolean).join("\n");
+    const address = notes ? [joinedAddress, `Notities: ${notes}`].filter(Boolean).join("\n") : joinedAddress;
 
     const parsed = clientCreateSchema.safeParse({
       type: flowType,
       name,
       email,
       phone,
-      address
+      address,
+      vatNumber,
+      companyNumber,
+      contactFirstName,
+      contactLastName,
+      contactEmail
     });
 
     if (!parsed.success) {
@@ -115,7 +111,12 @@ export default async function ClientsPage({
         ...parsed.data,
         email: parsed.data.email || null,
         phone: parsed.data.phone || null,
-        address: parsed.data.address || null
+        address: parsed.data.address || null,
+        vatNumber: parsed.data.vatNumber || null,
+        companyNumber: parsed.data.companyNumber || null,
+        contactFirstName: parsed.data.contactFirstName || null,
+        contactLastName: parsed.data.contactLastName || null,
+        contactEmail: parsed.data.contactEmail || null
       }
     });
 
