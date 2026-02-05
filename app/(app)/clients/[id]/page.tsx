@@ -109,58 +109,58 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">{client.name}</h1>
+        <h1 className="ld-page-title">{client.name}</h1>
         {canDelete ? (
           <form action={archiveClientAction}>
-            <button className="rounded border border-red-300 px-3 py-1.5 text-sm text-red-700 hover:bg-red-50" type="submit">
-              Archive client
+            <button className="rounded-xl border border-red-300 px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50" type="submit">
+              Cliënt archiveren
             </button>
           </form>
         ) : null}
       </div>
 
       {canEdit ? (
-        <form action={updateClientAction} className="grid gap-3 rounded border border-slate-200 bg-white p-4 md:grid-cols-2">
+        <form action={updateClientAction} className="ld-panel grid gap-4 p-5 md:grid-cols-2">
           <div>
-            <label className="mb-1 block text-sm">Type</label>
-            <select name="type" defaultValue={client.type} className="w-full rounded border border-slate-300 px-2 py-2 text-sm">
-              <option value="PERSON">Person</option>
-              <option value="COMPANY">Company</option>
+            <label className="mb-2 block text-sm font-semibold text-slate-700">Type</label>
+            <select name="type" defaultValue={client.type} className="ld-input">
+              <option value="PERSON">Particulier</option>
+              <option value="COMPANY">Bedrijf</option>
             </select>
           </div>
           <div>
-            <label className="mb-1 block text-sm">Name</label>
-            <input name="name" defaultValue={client.name} required className="w-full rounded border border-slate-300 px-2 py-2 text-sm" />
+            <label className="mb-2 block text-sm font-semibold text-slate-700">Naam</label>
+            <input name="name" defaultValue={client.name} required className="ld-input" />
           </div>
           <div>
-            <label className="mb-1 block text-sm">Email</label>
-            <input name="email" type="email" defaultValue={client.email ?? ""} className="w-full rounded border border-slate-300 px-2 py-2 text-sm" />
+            <label className="mb-2 block text-sm font-semibold text-slate-700">Email</label>
+            <input name="email" type="email" defaultValue={client.email ?? ""} className="ld-input" />
           </div>
           <div>
-            <label className="mb-1 block text-sm">Phone</label>
-            <input name="phone" defaultValue={client.phone ?? ""} className="w-full rounded border border-slate-300 px-2 py-2 text-sm" />
+            <label className="mb-2 block text-sm font-semibold text-slate-700">Telefoon</label>
+            <input name="phone" defaultValue={client.phone ?? ""} className="ld-input" />
           </div>
           <div className="md:col-span-2">
-            <label className="mb-1 block text-sm">Address</label>
-            <input name="address" defaultValue={client.address ?? ""} className="w-full rounded border border-slate-300 px-2 py-2 text-sm" />
+            <label className="mb-2 block text-sm font-semibold text-slate-700">Adres</label>
+            <input name="address" defaultValue={client.address ?? ""} className="ld-input" />
           </div>
-          <div className="md:col-span-2">
-            <button className="rounded bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700" type="submit">
-              Save changes
+          <div className="md:col-span-2 flex justify-end">
+            <button className="ld-btn-primary" type="submit">
+              Wijzigingen opslaan
             </button>
           </div>
         </form>
       ) : null}
 
-      <section className="rounded border border-slate-200 bg-white p-4">
+      <section className="ld-panel p-5">
         <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-600">Dossiers</h2>
         <ul className="space-y-2">
           {client.dossiers.length === 0 ? (
-            <li className="text-sm text-slate-500">No dossiers for this client.</li>
+            <li className="text-sm text-slate-500">Geen dossiers voor deze cliënt.</li>
           ) : (
             client.dossiers.map((dossier) => (
-              <li key={dossier.id} className="rounded border border-slate-100 p-3">
-                <Link href={`/dossiers/${dossier.id}`} className="text-sm font-medium text-primary-700 hover:text-primary-600">
+              <li key={dossier.id} className="rounded-xl border border-slate-200 p-3">
+                <Link href={`/dossiers/${dossier.id}`} className="text-sm font-semibold text-[#1f45b2] hover:underline">
                   {dossier.title}
                 </Link>
                 <p className="text-xs text-slate-500">
