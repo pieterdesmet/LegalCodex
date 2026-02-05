@@ -64,7 +64,7 @@ export default async function SearchPage({ searchParams }: { searchParams: { q?:
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="text-4xl font-extrabold tracking-tight text-slate-800">Zoeken</h1>
+        <h1 className="ld-page-title">Zoeken</h1>
         <p className="mt-1 text-base text-slate-500">Doorzoek cliënten, dossiers, taken en documenten</p>
       </div>
 

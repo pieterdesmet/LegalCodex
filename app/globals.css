@@ -4,11 +4,18 @@
 
 :root {
   color-scheme: light;
+  --ld-bg: #eef3f9;
+  --ld-surface: #ffffff;
+  --ld-border: #d5deea;
+  --ld-text: #24324a;
+  --ld-muted: #64748b;
+  --ld-primary: #2847b8;
 }
 
 body {
   @apply bg-[#eef3f9] text-slate-800 antialiased;
   font-family: "Avenir Next", "Nunito", "Segoe UI", sans-serif;
+  font-size: 15px;
 }
 
 input,
@@ -18,21 +25,34 @@ textarea {
 }
 
 .ld-panel {
-  @apply rounded-2xl border border-slate-200 bg-white shadow-[0_2px_12px_rgba(15,23,42,0.04)];
+  @apply rounded-2xl border bg-white shadow-[0_1px_10px_rgba(15,23,42,0.04)];
+  border-color: var(--ld-border);
 }
 
 .ld-input {
-  @apply w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#1f66d1] focus:ring-2 focus:ring-[#1f66d1]/15;
+  @apply w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#1f66d1] focus:ring-2 focus:ring-[#1f66d1]/15;
 }
 
 .ld-btn-primary {
-  @apply inline-flex items-center justify-center rounded-xl bg-[#2847b8] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#203ca3];
+  @apply inline-flex items-center justify-center rounded-xl bg-[#2847b8] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#203ca3];
 }
 
 .ld-btn-secondary {
-  @apply inline-flex items-center justify-center rounded-xl bg-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-300;
+  @apply inline-flex items-center justify-center rounded-xl bg-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-300;
 }
 
 .ld-badge {
   @apply inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold;
+}
+
+.ld-page-title {
+  @apply text-[46px] leading-[1.05] font-extrabold tracking-tight text-slate-800;
+}
+
+.ld-page-subtitle {
+  @apply mt-1 text-[30px] font-semibold tracking-tight text-slate-700;
+}
+
+.ld-section-title {
+  @apply text-[32px] font-extrabold tracking-tight text-slate-800;
 }

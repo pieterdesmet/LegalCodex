@@ -292,11 +292,11 @@ export default async function DossierDetailPage({ params }: { params: { id: stri
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">{dossier.title}</h1>
+        <h1 className="ld-page-title">{dossier.title}</h1>
         {canDeleteDossier ? (
           <form action={archiveDossierAction}>
-            <button className="rounded border border-red-300 px-3 py-1.5 text-sm text-red-700 hover:bg-red-50" type="submit">
-              Archive dossier
+            <button className="rounded-xl border border-red-300 px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50" type="submit">
+              Dossier archiveren
             </button>
           </form>
         ) : null}
@@ -305,14 +305,14 @@ export default async function DossierDetailPage({ params }: { params: { id: stri
       <section className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-4 lg:col-span-2">
           {canUpdateDossier ? (
-            <form action={updateDossierAction} className="grid gap-3 rounded border border-slate-200 bg-white p-4 md:grid-cols-2">
+            <form action={updateDossierAction} className="ld-panel grid gap-4 p-5 md:grid-cols-2">
               <div>
-                <label className="mb-1 block text-sm">Title</label>
-                <input name="title" defaultValue={dossier.title} className="w-full rounded border border-slate-300 px-2 py-2 text-sm" />
+                <label className="mb-2 block text-sm font-semibold text-slate-700">Titel</label>
+                <input name="title" defaultValue={dossier.title} className="ld-input" />
               </div>
               <div>
-                <label className="mb-1 block text-sm">Owner</label>
-                <select name="ownerUserId" defaultValue={dossier.ownerUserId} className="w-full rounded border border-slate-300 px-2 py-2 text-sm">
+                <label className="mb-2 block text-sm font-semibold text-slate-700">Verantwoordelijke</label>
+                <select name="ownerUserId" defaultValue={dossier.ownerUserId} className="ld-input">
                   {owners.map((owner) => (
                     <option key={owner.id} value={owner.id}>
                       {owner.name}
@@ -321,65 +321,65 @@ export default async function DossierDetailPage({ params }: { params: { id: stri
                 </select>
               </div>
               <div>
-                <label className="mb-1 block text-sm">Type</label>
-                <select name="type" defaultValue={dossier.type} className="w-full rounded border border-slate-300 px-2 py-2 text-sm">
+                <label className="mb-2 block text-sm font-semibold text-slate-700">Type</label>
+                <select name="type" defaultValue={dossier.type} className="ld-input">
                   <option value="CONTRACT">Contract</option>
-                  <option value="DISPUTE">Dispute</option>
-                  <option value="REAL_ESTATE">Real estate</option>
-                  <option value="OTHER">Other</option>
+                  <option value="DISPUTE">Geschil</option>
+                  <option value="REAL_ESTATE">Vastgoed</option>
+                  <option value="OTHER">Andere</option>
                 </select>
               </div>
               <div>
-                <label className="mb-1 block text-sm">Status</label>
-                <select name="status" defaultValue={dossier.status} className="w-full rounded border border-slate-300 px-2 py-2 text-sm">
-                  <option value="OPEN">Open</option>
-                  <option value="ON_HOLD">On hold</option>
-                  <option value="CLOSED">Closed</option>
+                <label className="mb-2 block text-sm font-semibold text-slate-700">Status</label>
+                <select name="status" defaultValue={dossier.status} className="ld-input">
+                  <option value="OPEN">Actief</option>
+                  <option value="ON_HOLD">In afwachting</option>
+                  <option value="CLOSED">Afgesloten</option>
                 </select>
               </div>
               <div className="md:col-span-2">
-                <label className="mb-1 block text-sm">Summary</label>
-                <textarea name="summary" rows={3} defaultValue={dossier.summary ?? ""} className="w-full rounded border border-slate-300 px-2 py-2 text-sm" />
+                <label className="mb-2 block text-sm font-semibold text-slate-700">Samenvatting</label>
+                <textarea name="summary" rows={3} defaultValue={dossier.summary ?? ""} className="ld-input" />
               </div>
               <div className="md:col-span-2">
-                <label className="mb-1 block text-sm">AI context</label>
-                <textarea name="aiContext" rows={2} defaultValue={dossier.aiContext ?? ""} className="w-full rounded border border-slate-300 px-2 py-2 text-sm" />
+                <label className="mb-2 block text-sm font-semibold text-slate-700">AI context</label>
+                <textarea name="aiContext" rows={2} defaultValue={dossier.aiContext ?? ""} className="ld-input" />
               </div>
-              <div className="md:col-span-2">
-                <button className="rounded bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700" type="submit">
-                  Save dossier
+              <div className="md:col-span-2 flex justify-end">
+                <button className="ld-btn-primary" type="submit">
+                  Wijzigingen opslaan
                 </button>
               </div>
             </form>
           ) : null}
 
-          <section className="rounded border border-slate-200 bg-white p-4">
-            <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-600">Tasks</h2>
+          <section className="ld-panel p-5">
+            <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-600">Taken</h2>
             {hasPermission(user.role, "TASK", "CREATE") ? (
               <form action={createTaskAction} className="mb-4 grid gap-3 md:grid-cols-4">
-                <input name="title" placeholder="Task title" required className="rounded border border-slate-300 px-2 py-2 text-sm md:col-span-2" />
-                <input name="deadline" type="datetime-local" className="rounded border border-slate-300 px-2 py-2 text-sm" />
-                <select name="priority" defaultValue="MEDIUM" className="rounded border border-slate-300 px-2 py-2 text-sm">
-                  <option value="LOW">Low</option>
-                  <option value="MEDIUM">Medium</option>
-                  <option value="HIGH">High</option>
+                <input name="title" placeholder="Titel van taak" required className="ld-input md:col-span-2" />
+                <input name="deadline" type="datetime-local" className="ld-input" />
+                <select name="priority" defaultValue="MEDIUM" className="ld-input">
+                  <option value="LOW">Normaal</option>
+                  <option value="MEDIUM">Hoog</option>
+                  <option value="HIGH">Urgent</option>
                 </select>
-                <textarea name="description" placeholder="Description" className="rounded border border-slate-300 px-2 py-2 text-sm md:col-span-4" />
-                <button type="submit" className="rounded bg-slate-900 px-3 py-2 text-sm font-medium text-white md:col-span-1">
-                  Add task
+                <textarea name="description" placeholder="Beschrijving" className="ld-input md:col-span-4" />
+                <button type="submit" className="ld-btn-primary md:col-span-1">
+                  Taak toevoegen
                 </button>
               </form>
             ) : null}
             <ul className="space-y-2">
               {dossier.tasks.length === 0 ? (
-                <li className="text-sm text-slate-500">No tasks yet.</li>
+                <li className="text-sm text-slate-500">Nog geen taken.</li>
               ) : (
                 dossier.tasks.map((task) => (
-                  <li key={task.id} className="rounded border border-slate-100 p-3 text-sm">
-                    <p className="font-medium">{task.title}</p>
+                  <li key={task.id} className="rounded-xl border border-slate-200 p-3 text-sm">
+                    <p className="font-semibold text-slate-800">{task.title}</p>
                     <p className="text-xs text-slate-500">
                       {task.status} · {task.priority}
-                      {task.deadline ? ` · due ${new Date(task.deadline).toLocaleString()}` : ""}
+                      {task.deadline ? ` · deadline ${new Date(task.deadline).toLocaleString("nl-BE")}` : ""}
                     </p>
                   </li>
                 ))
@@ -387,48 +387,48 @@ export default async function DossierDetailPage({ params }: { params: { id: stri
             </ul>
           </section>
 
-          <section className="rounded border border-slate-200 bg-white p-4">
-            <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-600">Documents</h2>
+          <section className="ld-panel p-5">
+            <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-600">Documenten</h2>
             {hasPermission(user.role, "DOCUMENT", "CREATE") ? (
               <form action={createDocumentAction} className="mb-4 grid gap-3 md:grid-cols-2">
-                <input name="title" placeholder="Document title" required className="rounded border border-slate-300 px-2 py-2 text-sm" />
-                <select name="type" defaultValue="NOTE" className="rounded border border-slate-300 px-2 py-2 text-sm">
-                  <option value="LETTER">Letter</option>
+                <input name="title" placeholder="Titel van document" required className="ld-input" />
+                <select name="type" defaultValue="NOTE" className="ld-input">
+                  <option value="LETTER">Brief</option>
                   <option value="CONTRACT">Contract</option>
-                  <option value="NOTE">Note</option>
-                  <option value="OTHER">Other</option>
+                  <option value="NOTE">Notitie</option>
+                  <option value="OTHER">Andere</option>
                 </select>
-                <select name="templateId" className="rounded border border-slate-300 px-2 py-2 text-sm">
-                  <option value="">No template</option>
+                <select name="templateId" className="ld-input">
+                  <option value="">Geen template</option>
                   {templates.map((template) => (
                     <option key={template.id} value={template.id}>
                       {template.name}
                     </option>
                   ))}
                 </select>
-                <select name="source" defaultValue="UPLOAD" className="rounded border border-slate-300 px-2 py-2 text-sm">
+                <select name="source" defaultValue="UPLOAD" className="ld-input">
                   <option value="UPLOAD">Upload</option>
                   <option value="TEMPLATE">Template</option>
                   <option value="AI">AI</option>
                 </select>
                 <textarea
                   name="content"
-                  placeholder="Content (optional if template selected)"
-                  className="rounded border border-slate-300 px-2 py-2 text-sm md:col-span-2"
+                  placeholder="Inhoud (optioneel als template gekozen is)"
+                  className="ld-input md:col-span-2"
                   rows={4}
                 />
-                <button type="submit" className="rounded bg-slate-900 px-3 py-2 text-sm font-medium text-white md:col-span-1">
-                  Add document
+                <button type="submit" className="ld-btn-primary md:col-span-1">
+                  Document toevoegen
                 </button>
               </form>
             ) : null}
             <ul className="space-y-2">
               {dossier.documents.length === 0 ? (
-                <li className="text-sm text-slate-500">No documents yet.</li>
+                <li className="text-sm text-slate-500">Nog geen documenten.</li>
               ) : (
                 dossier.documents.map((document) => (
-                  <li key={document.id} className="rounded border border-slate-100 p-3 text-sm">
-                    <p className="font-medium">{document.title}</p>
+                  <li key={document.id} className="rounded-xl border border-slate-200 p-3 text-sm">
+                    <p className="font-semibold text-slate-800">{document.title}</p>
                     <p className="text-xs text-slate-500">
                       {document.type} · v{document.version} · {document.source}
                     </p>
@@ -438,28 +438,28 @@ export default async function DossierDetailPage({ params }: { params: { id: stri
             </ul>
           </section>
 
-          <section className="rounded border border-slate-200 bg-white p-4">
-            <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-600">Time Entries</h2>
+          <section className="ld-panel p-5">
+            <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-600">Tijdsregistraties</h2>
             {hasPermission(user.role, "TIME_ENTRY", "CREATE") ? (
               <form action={createTimeEntryAction} className="mb-4 grid gap-3 md:grid-cols-3">
-                <input name="startAt" type="datetime-local" required className="rounded border border-slate-300 px-2 py-2 text-sm" />
-                <input name="endAt" type="datetime-local" className="rounded border border-slate-300 px-2 py-2 text-sm" />
-                <input name="description" required placeholder="What did you do?" className="rounded border border-slate-300 px-2 py-2 text-sm" />
-                <button type="submit" className="rounded bg-slate-900 px-3 py-2 text-sm font-medium text-white md:col-span-1">
-                  Add time
+                <input name="startAt" type="datetime-local" required className="ld-input" />
+                <input name="endAt" type="datetime-local" className="ld-input" />
+                <input name="description" required placeholder="Wat heb je gedaan?" className="ld-input" />
+                <button type="submit" className="ld-btn-primary md:col-span-1">
+                  Tijd toevoegen
                 </button>
               </form>
             ) : null}
             <ul className="space-y-2">
               {dossier.timeEntries.length === 0 ? (
-                <li className="text-sm text-slate-500">No time entries yet.</li>
+                <li className="text-sm text-slate-500">Nog geen registraties.</li>
               ) : (
                 dossier.timeEntries.map((entry) => (
-                  <li key={entry.id} className="rounded border border-slate-100 p-3 text-sm">
-                    <p className="font-medium">{entry.description}</p>
+                  <li key={entry.id} className="rounded-xl border border-slate-200 p-3 text-sm">
+                    <p className="font-semibold text-slate-800">{entry.description}</p>
                     <p className="text-xs text-slate-500">
-                      {entry.user.name} · {new Date(entry.startAt).toLocaleString()} -{" "}
-                      {entry.endAt ? new Date(entry.endAt).toLocaleString() : "Running"}
+                      {entry.user.name} · {new Date(entry.startAt).toLocaleString("nl-BE")} -{" "}
+                      {entry.endAt ? new Date(entry.endAt).toLocaleString("nl-BE") : "Lopend"}
                     </p>
                   </li>
                 ))

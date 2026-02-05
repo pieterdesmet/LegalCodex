@@ -157,7 +157,7 @@ export default async function DossiersPage({
     <div className="space-y-5">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-4xl font-extrabold tracking-tight text-slate-800">Dossiers</h1>
+          <h1 className="ld-page-title">Dossiers</h1>
           <p className="mt-1 text-base text-slate-500">{dossiers.length} dossiers</p>
         </div>
         {canCreate ? (

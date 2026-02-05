@@ -150,7 +150,7 @@ export default async function TimeTrackingPage({
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-4xl font-extrabold tracking-tight text-slate-800">Tijd registreren</h1>
+        <h1 className="ld-page-title">Tijd registreren</h1>
       </div>
 
       <section className="ld-panel p-6">

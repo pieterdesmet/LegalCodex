@@ -91,7 +91,7 @@ export default async function TasksPage({
     <div className="space-y-5">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-4xl font-extrabold tracking-tight text-slate-800">Taken</h1>
+          <h1 className="ld-page-title">Taken</h1>
           <p className="mt-1 text-base text-slate-500">{openTasksCount} openstaande taken</p>
         </div>
         {canCreate ? <Link href="/tasks?new=1" className="ld-btn-primary">+ Nieuwe taak</Link> : null}

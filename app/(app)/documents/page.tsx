@@ -49,38 +49,46 @@ export default async function DocumentsPage() {
     revalidatePath("/documents");
   }
 
+  const canCreateTemplate = hasPermission(user.role, "TEMPLATE", "CREATE");
+
   return (
     <div className="space-y-6">
-      <h1 className="text-xl font-semibold">Documents & Templates</h1>
+      <div>
+        <h1 className="ld-page-title">Documenten</h1>
+        <p className="mt-1 text-base text-slate-500">{documents.length} documenten · {templates.length} templates</p>
+      </div>
 
-      {hasPermission(user.role, "TEMPLATE", "CREATE") ? (
-        <form action={createTemplateAction} className="grid gap-3 rounded border border-slate-200 bg-white p-4">
-          <div className="grid gap-3 md:grid-cols-2">
-            <input name="name" placeholder="Template name" required className="rounded border border-slate-300 px-2 py-2 text-sm" />
-            <input name="type" placeholder="Type (LETTER/CONTRACT/...)" required className="rounded border border-slate-300 px-2 py-2 text-sm" />
-          </div>
-          <textarea
-            name="body"
-            rows={4}
-            required
-            placeholder="Use placeholders like {{client.name}} and {{dossier.title}}"
-            className="rounded border border-slate-300 px-2 py-2 text-sm"
-          />
-          <button type="submit" className="w-fit rounded bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700">
-            Create template
-          </button>
-        </form>
+      {canCreateTemplate ? (
+        <section className="ld-panel p-6">
+          <h2 className="text-lg font-bold text-slate-800">Nieuwe template</h2>
+          <form action={createTemplateAction} className="mt-4 grid gap-3">
+            <div className="grid gap-3 md:grid-cols-2">
+              <input name="name" placeholder="Naam van template" required className="ld-input" />
+              <input name="type" placeholder="Type (LETTER/CONTRACT/...)" required className="ld-input" />
+            </div>
+            <textarea
+              name="body"
+              rows={4}
+              required
+              placeholder="Gebruik placeholders zoals {{client.name}} en {{dossier.title}}"
+              className="ld-input"
+            />
+            <button type="submit" className="ld-btn-primary w-fit">
+              Template aanmaken
+            </button>
+          </form>
+        </section>
       ) : null}
 
-      <section className="rounded border border-slate-200 bg-white p-4">
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-600">Templates</h2>
-        <ul className="space-y-2">
+      <section className="ld-panel p-6">
+        <h2 className="text-lg font-bold text-slate-800">Templates</h2>
+        <ul className="mt-4 space-y-2">
           {templates.length === 0 ? (
-            <li className="text-sm text-slate-500">No templates yet.</li>
+            <li className="rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-500">Nog geen templates.</li>
           ) : (
             templates.map((template) => (
-              <li key={template.id} className="rounded border border-slate-100 p-3 text-sm">
-                <p className="font-medium">{template.name}</p>
+              <li key={template.id} className="rounded-xl border border-slate-200 px-4 py-3">
+                <p className="text-sm font-semibold text-slate-800">{template.name}</p>
                 <p className="text-xs text-slate-500">{template.type}</p>
               </li>
             ))
@@ -88,15 +96,15 @@ export default async function DocumentsPage() {
         </ul>
       </section>
 
-      <section className="rounded border border-slate-200 bg-white p-4">
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-600">All Documents</h2>
-        <ul className="space-y-2">
+      <section className="ld-panel p-6">
+        <h2 className="text-lg font-bold text-slate-800">Recente documenten</h2>
+        <ul className="mt-4 space-y-2">
           {documents.length === 0 ? (
-            <li className="text-sm text-slate-500">No documents yet.</li>
+            <li className="rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-500">Nog geen documenten.</li>
           ) : (
             documents.map((document) => (
-              <li key={document.id} className="rounded border border-slate-100 p-3 text-sm">
-                <p className="font-medium">{document.title}</p>
+              <li key={document.id} className="rounded-xl border border-slate-200 px-4 py-3">
+                <p className="text-sm font-semibold text-slate-800">{document.title}</p>
                 <p className="text-xs text-slate-500">
                   {document.dossier.title} · {document.type} · {document.source}
                 </p>

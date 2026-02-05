@@ -4,12 +4,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const navItems = [
-  { href: "/dashboard", label: "Dashboard" },
-  { href: "/clients", label: "Cliënten" },
-  { href: "/dossiers", label: "Dossiers" },
-  { href: "/tasks", label: "Taken" },
-  { href: "/time-tracking", label: "Tijdregistratie" },
-  { href: "/documents", label: "Documenten" }
+  { href: "/dashboard", label: "Dashboard", icon: "◻" },
+  { href: "/clients", label: "Cliënten", icon: "◌" },
+  { href: "/dossiers", label: "Dossiers", icon: "▣" },
+  { href: "/tasks", label: "Taken", icon: "✓" },
+  { href: "/time-tracking", label: "Tijdregistratie", icon: "◷" },
+  { href: "/documents", label: "Documenten", icon: "▤" }
 ];
 
 function ScaleIcon() {
@@ -28,13 +28,13 @@ export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="hidden min-h-screen w-[290px] flex-col border-r border-slate-700 bg-[#1c2942] text-slate-200 lg:flex">
+    <aside className="hidden min-h-screen w-[300px] flex-col border-r border-slate-700 bg-[#1c2942] text-slate-200 lg:flex">
       <div className="px-5 pb-5 pt-7">
         <div className="flex items-center gap-3">
           <ScaleIcon />
           <div>
-            <p className="text-xl font-extrabold text-white">LegalDesk</p>
-            <p className="text-sm text-slate-400">Advocatenbeheer</p>
+            <p className="text-4xl font-extrabold leading-none text-white">LegalDesk</p>
+            <p className="mt-1 text-sm text-slate-400">Advocatenbeheer</p>
           </div>
         </div>
 
@@ -58,11 +58,11 @@ export function Sidebar() {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center rounded-xl px-4 py-3 text-base font-semibold transition ${
+                className={`flex items-center rounded-xl px-4 py-3 text-xl font-semibold transition ${
                   active ? "bg-[#2b49ba] text-white" : "text-slate-200 hover:bg-slate-700/60"
                 }`}
               >
-                <span className="text-sm">●</span>
+                <span className="text-lg">{item.icon}</span>
                 <span className="ml-3">{item.label}</span>
               </Link>
             );

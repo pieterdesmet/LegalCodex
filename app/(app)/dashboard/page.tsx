@@ -87,15 +87,15 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-6">
       <section>
-        <h1 className="text-4xl font-extrabold tracking-tight text-slate-800">{getGreeting(now)}</h1>
-        <p className="mt-1 text-base text-slate-500 capitalize">{formatDay(now)}</p>
+        <h1 className="ld-page-title">{getGreeting(now)}</h1>
+        <p className="mt-1 text-lg text-slate-500 capitalize">{formatDay(now)}</p>
       </section>
 
       <section className="flex flex-wrap items-center gap-3">
         <Link href="/clients?new=1" className="ld-btn-primary">+ Nieuwe Cliënt</Link>
         <Link href="/dossiers?new=1" className="ld-btn-primary">+ Nieuw Dossier</Link>
         <Link href="/time-tracking?new=1" className="ld-btn-secondary">◷ Tijd loggen</Link>
-        <button type="button" className="ld-btn-secondary">⌕ Zoeken (⌘K)</button>
+        <Link href="/search" className="ld-btn-secondary">⌕ Zoeken (⌘K)</Link>
       </section>
 
       <section className="ld-panel px-6 py-5">

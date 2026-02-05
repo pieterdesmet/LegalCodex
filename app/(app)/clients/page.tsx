@@ -167,7 +167,7 @@ export default async function ClientsPage({
     <div className="space-y-5">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-4xl font-extrabold tracking-tight text-slate-800">Cliënten</h1>
+          <h1 className="ld-page-title">Cliënten</h1>
           <p className="mt-1 text-base text-slate-500">{clients.length} cliënten</p>
         </div>
         {canCreate ? (
@@ -227,7 +227,7 @@ export default async function ClientsPage({
 
       {searchParams.created ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/45 p-4">
-          <div className="w-full max-w-xl rounded-2xl bg-white p-7 text-center shadow-2xl">
+          <div className="w-full max-w-2xl rounded-2xl bg-white p-8 text-center shadow-2xl">
             <p className="mb-3 text-5xl text-emerald-600">✓</p>
             <h2 className="text-3xl font-extrabold text-slate-800">Cliënt aangemaakt</h2>
             <p className="mt-2 text-base text-slate-500">{searchParams.name} is succesvol toegevoegd.</p>
@@ -243,7 +243,7 @@ export default async function ClientsPage({
 
       {searchParams.new === "1" && canCreate ? (
         <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-slate-900/45 p-6">
-          <div className="w-full max-w-3xl rounded-2xl bg-white p-6 shadow-2xl">
+          <div className="w-full max-w-[980px] rounded-2xl bg-white p-6 shadow-2xl">
             <h2 className="text-2xl font-extrabold text-slate-800">Nieuwe cliënt</h2>
 
             {!newType ? (
