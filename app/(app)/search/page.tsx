@@ -1,15 +1,24 @@
 import Link from "next/link";
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { hasPermission } from "@/lib/rbac";
 
 export default async function SearchPage({ searchParams }: { searchParams: { q?: string } }) {
-  await requireUser();
+  const user = await requireUser();
 
   const q = searchParams.q?.trim() ?? "";
+  const canReadClients = hasPermission(user.role, "CLIENT", "READ");
+  const canReadDossiers = hasPermission(user.role, "DOSSIER", "READ");
+  const canReadTasks = hasPermission(user.role, "TASK", "READ");
+  const canReadDocuments = hasPermission(user.role, "DOCUMENT", "READ");
+  const canReadTemplates = hasPermission(user.role, "TEMPLATE", "READ");
+  const canReadTimeEntries = hasPermission(user.role, "TIME_ENTRY", "READ");
+  const canReadAudit = user.role !== "STAFF";
 
   const [clients, dossiers, tasks, documents, templates, timeEntries, auditLogs] = q
     ? await Promise.all([
-        prisma.client.findMany({
+        canReadClients
+          ? prisma.client.findMany({
           where: {
             deletedAt: null,
             OR: [
@@ -22,8 +31,10 @@ export default async function SearchPage({ searchParams }: { searchParams: { q?:
           },
           take: 8,
           orderBy: { createdAt: "desc" }
-        }),
-        prisma.dossier.findMany({
+        })
+          : Promise.resolve([]),
+        canReadDossiers
+          ? prisma.dossier.findMany({
           where: {
             deletedAt: null,
             OR: [
@@ -35,8 +46,10 @@ export default async function SearchPage({ searchParams }: { searchParams: { q?:
           include: { client: true },
           take: 8,
           orderBy: { createdAt: "desc" }
-        }),
-        prisma.task.findMany({
+        })
+          : Promise.resolve([]),
+        canReadTasks
+          ? prisma.task.findMany({
           where: {
             OR: [
               { title: { contains: q, mode: "insensitive" } },
@@ -47,8 +60,10 @@ export default async function SearchPage({ searchParams }: { searchParams: { q?:
           include: { dossier: true },
           take: 8,
           orderBy: { createdAt: "desc" }
-        }),
-        prisma.document.findMany({
+        })
+          : Promise.resolve([]),
+        canReadDocuments
+          ? prisma.document.findMany({
           where: {
             OR: [
               { title: { contains: q, mode: "insensitive" } },
@@ -59,8 +74,10 @@ export default async function SearchPage({ searchParams }: { searchParams: { q?:
           include: { dossier: true },
           take: 8,
           orderBy: { createdAt: "desc" }
-        }),
-        prisma.template.findMany({
+        })
+          : Promise.resolve([]),
+        canReadTemplates
+          ? prisma.template.findMany({
           where: {
             OR: [
               { name: { contains: q, mode: "insensitive" } },
@@ -70,8 +87,10 @@ export default async function SearchPage({ searchParams }: { searchParams: { q?:
           },
           take: 8,
           orderBy: { createdAt: "desc" }
-        }),
-        prisma.timeEntry.findMany({
+        })
+          : Promise.resolve([]),
+        canReadTimeEntries
+          ? prisma.timeEntry.findMany({
           where: {
             OR: [{ description: { contains: q, mode: "insensitive" } }, { dossier: { title: { contains: q, mode: "insensitive" } } }],
             dossier: { deletedAt: null }
@@ -79,8 +98,10 @@ export default async function SearchPage({ searchParams }: { searchParams: { q?:
           include: { dossier: true, user: true },
           take: 8,
           orderBy: { createdAt: "desc" }
-        }),
-        prisma.auditLog.findMany({
+        })
+          : Promise.resolve([]),
+        canReadAudit
+          ? prisma.auditLog.findMany({
           where: {
             OR: [
               { entityId: { contains: q, mode: "insensitive" } },
@@ -91,6 +112,7 @@ export default async function SearchPage({ searchParams }: { searchParams: { q?:
           take: 8,
           orderBy: { createdAt: "desc" }
         })
+          : Promise.resolve([])
       ])
     : [[], [], [], [], [], [], []];
 

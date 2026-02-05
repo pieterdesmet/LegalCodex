@@ -64,7 +64,17 @@ export default async function DashboardPage() {
   const startWeek = addDays(startToday, -7);
   const startMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-  const [openDossiers, openTasks, dueToday, recentDossiers, timeEntries, clientsCount, recentAudit, latestBriefingEvent] = await Promise.all([
+  const [
+    openDossiers,
+    openTasks,
+    dueToday,
+    recentDossiers,
+    timeEntries,
+    clientsCount,
+    recentAudit,
+    latestBriefingEvent,
+    latestDeadlineScan
+  ] = await Promise.all([
     prisma.dossier.count({ where: { deletedAt: null, status: "OPEN" } }),
     prisma.task.count({ where: { status: { not: "DONE" }, dossier: { deletedAt: null } } }),
     prisma.task.findMany({
@@ -94,7 +104,12 @@ export default async function DashboardPage() {
       take: 6
     }),
     prisma.aIEvent.findFirst({
-      where: { trigger: { in: [AITrigger.DASHBOARD_BRIEFING, AITrigger.DEADLINE_SCAN, AITrigger.SUMMARY] } },
+      where: { trigger: AITrigger.DASHBOARD_BRIEFING },
+      include: { dossier: true },
+      orderBy: { createdAt: "desc" }
+    }),
+    prisma.aIEvent.findFirst({
+      where: { trigger: AITrigger.DEADLINE_SCAN },
       include: { dossier: true },
       orderBy: { createdAt: "desc" }
     })
@@ -105,6 +120,7 @@ export default async function DashboardPage() {
   const monthHours = sumHours(timeEntries);
   const monthRevenue = monthHours * 125;
   const briefingPayload = latestBriefingEvent ? parseBriefing(latestBriefingEvent.outputJson) : null;
+  const deadlinePayload = latestDeadlineScan ? parseBriefing(latestDeadlineScan.outputJson) : null;
   const fallbackSummary =
     dueToday.length > 0
       ? `${dueToday.length} taken vragen aandacht binnen 7 dagen. Focus eerst op deadlines met hoogste prioriteit.`
@@ -115,6 +131,7 @@ export default async function DashboardPage() {
   const taskItems = (briefingPayload?.proposedTasks?.slice(0, 2).map((task) => task.title).filter(Boolean) as string[]) ?? [];
   const suggestionItems = (briefingPayload?.suggestions?.slice(0, 2).map((item) => item.title).filter(Boolean) as string[]) ?? [];
   const briefingItems = [...riskItems, ...taskItems, ...suggestionItems].slice(0, 3);
+  const deadlineRiskItems = (deadlinePayload?.risks?.slice(0, 3).map((risk) => risk.title).filter(Boolean) as string[]) ?? [];
 
   return (
     <div className="space-y-6">
@@ -167,6 +184,21 @@ export default async function DashboardPage() {
             Bronnen: {latestBriefingEvent ? `dossier:${latestBriefingEvent.dossier.title}, event:${latestBriefingEvent.id}` : "interne dashboarddata"}
           </span>
         </div>
+
+        {latestDeadlineScan ? (
+          <div className="mt-5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+            <p className="text-xs font-semibold uppercase text-amber-700">Deadline scan</p>
+            {deadlineRiskItems.length > 0 ? (
+              <ul className="mt-2 space-y-1">
+                {deadlineRiskItems.map((item) => (
+                  <li key={item} className="text-sm text-amber-800">• {item}</li>
+                ))}
+              </ul>
+            ) : (
+              <p className="mt-2 text-sm text-amber-800">Geen kritieke risico’s gevonden.</p>
+            )}
+          </div>
+        ) : null}
       </section>
 
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
