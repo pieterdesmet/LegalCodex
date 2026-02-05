@@ -14,24 +14,24 @@ test("admin can login and run core CRUD smoke flow", async ({ page }) => {
   await expect(page).toHaveURL(/\/dashboard$/);
 
   await page.goto("/clients");
-  await page.locator('select[name="type"]').first().selectOption("COMPANY");
-  await page.locator('input[name="name"]').first().fill(clientName);
-  await page.locator('input[name="email"]').first().fill(`smoke-${suffix}@example.test`);
-  await page.getByRole("button", { name: "Create client" }).click();
+  await page.getByRole("link", { name: "+ Nieuwe cliënt" }).click();
+  await page.locator('select[name="type"]').selectOption("COMPANY");
+  await page.locator('input[name="companyName"]').fill(clientName);
+  await page.locator('input[name="email"]').fill(`smoke-${suffix}@example.test`);
+  await page.getByRole("button", { name: "Toevoegen" }).click();
   await expect(page.getByRole("link", { name: clientName })).toBeVisible();
 
   await page.goto("/dossiers");
+  await page.getByRole("link", { name: "+ Nieuw dossier" }).click();
+  await page.locator('input[name="title"]').fill(dossierTitle);
   await page.locator('select[name="clientId"]').selectOption({ label: clientName });
-  await page.locator('input[name="title"]').first().fill(dossierTitle);
-  await page.getByRole("button", { name: "Create dossier" }).click();
+  await page.getByRole("button", { name: "Aanmaken" }).click();
   await expect(page.getByRole("link", { name: dossierTitle })).toBeVisible();
 
-  await page.getByRole("link", { name: dossierTitle }).first().click();
-  await expect(page.getByRole("heading", { name: dossierTitle })).toBeVisible();
-
-  await page.getByPlaceholder("Task title").fill(taskTitle);
-  await page.getByRole("button", { name: "Add task" }).click();
+  await page.goto("/tasks");
+  await page.getByRole("link", { name: "+ Nieuwe taak" }).click();
+  await page.locator('select[name="dossierId"]').selectOption({ label: dossierTitle });
+  await page.locator('input[name="title"]').fill(taskTitle);
+  await page.getByRole("button", { name: "Toevoegen" }).click();
   await expect(page.getByText(taskTitle)).toBeVisible();
-
-  await expect(page.getByText("AI output is a suggestion only.")).toBeVisible();
 });

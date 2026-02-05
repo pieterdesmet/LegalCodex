@@ -3,113 +3,183 @@ import { addDays } from "@/lib/date";
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
+function getGreeting(date: Date) {
+  const hour = date.getHours();
+  if (hour < 12) return "Goedemorgen";
+  if (hour < 18) return "Goedemiddag";
+  return "Goedenavond";
+}
+
+function formatDay(date: Date) {
+  return new Intl.DateTimeFormat("nl-BE", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric"
+  }).format(date);
+}
+
+function sumHours(entries: Array<{ startAt: Date; endAt: Date | null }>) {
+  const totalMs = entries.reduce((sum, entry) => {
+    if (!entry.endAt) return sum;
+    return sum + (entry.endAt.getTime() - entry.startAt.getTime());
+  }, 0);
+  return totalMs / 1000 / 60 / 60;
+}
+
+function statusBadge(status: "OPEN" | "ON_HOLD" | "CLOSED") {
+  if (status === "OPEN") {
+    return <span className="ld-badge bg-emerald-100 text-emerald-700">Actief</span>;
+  }
+
+  if (status === "ON_HOLD") {
+    return <span className="ld-badge bg-amber-100 text-amber-700">In afwachting</span>;
+  }
+
+  return <span className="ld-badge bg-slate-200 text-slate-600">Afgesloten</span>;
+}
+
 export default async function DashboardPage() {
-  await requireUser();
+  const user = await requireUser();
 
   const now = new Date();
   const nextWeek = addDays(now, 7);
+  const startToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const startWeek = addDays(startToday, -7);
+  const startMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-  const [openDossiers, dueTasks, recentDocuments, latestAIEvent] = await Promise.all([
+  const [openDossiers, openTasks, dueToday, recentDossiers, timeEntries, clientsCount, recentAudit] = await Promise.all([
     prisma.dossier.count({ where: { deletedAt: null, status: "OPEN" } }),
+    prisma.task.count({ where: { status: { not: "DONE" }, dossier: { deletedAt: null } } }),
     prisma.task.findMany({
       where: {
-        deadline: {
-          gte: now,
-          lte: nextWeek
-        },
         status: { not: "DONE" },
+        deadline: { gte: startToday, lte: nextWeek },
         dossier: { deletedAt: null }
       },
       include: { dossier: true },
       orderBy: { deadline: "asc" },
-      take: 8
+      take: 4
     }),
-    prisma.document.findMany({
-      where: { dossier: { deletedAt: null } },
+    prisma.dossier.findMany({
+      where: { deletedAt: null },
+      include: { client: true },
       orderBy: { createdAt: "desc" },
-      include: { dossier: true },
+      take: 5
+    }),
+    prisma.timeEntry.findMany({
+      where: { dossier: { deletedAt: null }, endAt: { not: null }, startAt: { gte: startMonth } },
+      select: { startAt: true, endAt: true }
+    }),
+    prisma.client.count({ where: { deletedAt: null } }),
+    prisma.auditLog.findMany({
+      include: { actor: true },
+      orderBy: { createdAt: "desc" },
       take: 6
-    }),
-    prisma.aIEvent.findFirst({
-      orderBy: { createdAt: "desc" },
-      include: { dossier: true }
     })
   ]);
 
+  const todayHours = sumHours(timeEntries.filter((entry) => entry.startAt >= startToday));
+  const weekHours = sumHours(timeEntries.filter((entry) => entry.startAt >= startWeek));
+  const monthHours = sumHours(timeEntries);
+  const monthRevenue = monthHours * 125;
+
   return (
     <div className="space-y-6">
-      <section className="grid gap-4 md:grid-cols-3">
-        <div className="rounded border border-slate-200 bg-white p-4">
-          <p className="text-sm text-slate-500">Open dossiers</p>
-          <p className="mt-2 text-3xl font-semibold">{openDossiers}</p>
+      <section>
+        <h1 className="text-4xl font-extrabold tracking-tight text-slate-800">{getGreeting(now)}</h1>
+        <p className="mt-1 text-base text-slate-500 capitalize">{formatDay(now)}</p>
+      </section>
+
+      <section className="flex flex-wrap items-center gap-3">
+        <Link href="/clients?new=1" className="ld-btn-primary">+ Nieuwe Cliënt</Link>
+        <Link href="/dossiers?new=1" className="ld-btn-primary">+ Nieuw Dossier</Link>
+        <Link href="/time-tracking?new=1" className="ld-btn-secondary">◷ Tijd loggen</Link>
+        <button type="button" className="ld-btn-secondary">⌕ Zoeken (⌘K)</button>
+      </section>
+
+      <section className="ld-panel px-6 py-5">
+        <h2 className="text-2xl font-bold text-slate-800">Focus van vandaag</h2>
+        {dueToday.length === 0 ? (
+          <p className="mt-6 rounded-xl bg-emerald-50 px-4 py-6 text-center text-base font-semibold text-emerald-700">✓ Alles up-to-date!</p>
+        ) : (
+          <ul className="mt-5 space-y-2">
+            {dueToday.map((task) => (
+              <li key={task.id} className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+                <p className="font-semibold text-slate-800">{task.title}</p>
+                <p className="text-sm text-slate-500">
+                  {task.dossier.title} · Deadline {task.deadline ? new Date(task.deadline).toLocaleDateString("nl-BE") : "-"}
+                </p>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
+        <div className="ld-panel p-5">
+          <p className="text-3xl font-extrabold text-slate-800">{openDossiers}</p>
+          <p className="mt-1 text-sm text-slate-500">Actieve dossiers</p>
         </div>
-        <div className="rounded border border-slate-200 bg-white p-4">
-          <p className="text-sm text-slate-500">Tasks due next 7 days</p>
-          <p className="mt-2 text-3xl font-semibold">{dueTasks.length}</p>
+        <div className="ld-panel p-5">
+          <p className="text-3xl font-extrabold text-slate-800">{openTasks}</p>
+          <p className="mt-1 text-sm text-slate-500">Open taken</p>
         </div>
-        <div className="rounded border border-slate-200 bg-white p-4">
-          <p className="text-sm text-slate-500">Recent documents</p>
-          <p className="mt-2 text-3xl font-semibold">{recentDocuments.length}</p>
+        <div className="ld-panel p-5">
+          <p className="text-3xl font-extrabold text-slate-800">{todayHours.toFixed(1)}u</p>
+          <p className="mt-1 text-sm text-slate-500">Uren vandaag</p>
+        </div>
+        <div className="ld-panel p-5">
+          <p className="text-3xl font-extrabold text-slate-800">{weekHours.toFixed(1)}u</p>
+          <p className="mt-1 text-sm text-slate-500">Uren deze week</p>
+        </div>
+        <div className="ld-panel p-5">
+          <p className="text-3xl font-extrabold text-slate-800">{monthHours.toFixed(1)}u</p>
+          <p className="mt-1 text-sm text-slate-500">Uren deze maand</p>
+          <p className="mt-1 text-sm font-semibold text-emerald-700">€{monthRevenue.toFixed(0)}</p>
+        </div>
+        <div className="ld-panel p-5">
+          <p className="text-3xl font-extrabold text-slate-800">{clientsCount}</p>
+          <p className="mt-1 text-sm text-slate-500">Cliënten</p>
         </div>
       </section>
 
-      <section className="grid gap-6 lg:grid-cols-2">
-        <div className="rounded border border-slate-200 bg-white p-4">
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-600">Deadlines</h2>
-            <Link href="/tasks" className="text-sm text-primary-600 hover:text-primary-700">
-              View all
-            </Link>
+      <section className="grid gap-5 xl:grid-cols-2">
+        <div className="ld-panel p-6">
+          <div className="mb-4 flex items-center justify-between">
+            <h3 className="text-xl font-bold text-slate-800">Recente dossiers</h3>
+            <Link href="/dossiers" className="text-sm font-semibold text-[#2847b8]">Alle bekijken →</Link>
           </div>
           <ul className="space-y-3">
-            {dueTasks.length === 0 ? (
-              <li className="text-sm text-slate-500">No deadlines in the next 7 days.</li>
-            ) : (
-              dueTasks.map((task) => (
-                <li key={task.id} className="rounded border border-slate-100 p-3 text-sm">
-                  <p className="font-medium">{task.title}</p>
-                  <p className="text-slate-500">{task.dossier.title}</p>
-                  <p className="text-xs text-slate-400">
-                    Due {task.deadline ? new Date(task.deadline).toLocaleString() : "No deadline"}
-                  </p>
-                </li>
-              ))
-            )}
+            {recentDossiers.map((dossier) => (
+              <li key={dossier.id} className="rounded-xl border border-slate-200 px-4 py-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <Link href={`/dossiers/${dossier.id}`} className="text-base font-bold text-[#1f45b2] hover:underline">
+                      {dossier.title}
+                    </Link>
+                    <p className="text-sm text-slate-500">{dossier.client.name}</p>
+                  </div>
+                  {statusBadge(dossier.status)}
+                </div>
+              </li>
+            ))}
           </ul>
         </div>
 
-        <div className="rounded border border-slate-200 bg-white p-4">
-          <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-600">AI Briefing</h2>
-          <p className="text-xs text-slate-500">
-            AI suggestions only. Not legal advice. Review and approve manually before applying changes.
-          </p>
-          {latestAIEvent ? (
-            <div className="mt-4 rounded border border-blue-100 bg-blue-50 p-3">
-              <p className="text-sm font-medium">Dossier: {latestAIEvent.dossier.title}</p>
-              <p className="mt-1 text-xs text-slate-600">Trigger: {latestAIEvent.trigger}</p>
-              <p className="mt-1 text-xs text-slate-600">Confidence: {(latestAIEvent.confidence * 100).toFixed(0)}%</p>
-              <p className="mt-2 text-xs text-slate-500">{latestAIEvent.inputSummary}</p>
-            </div>
-          ) : (
-            <p className="mt-3 text-sm text-slate-500">No AI events yet.</p>
-          )}
-        </div>
-      </section>
-
-      <section className="rounded border border-slate-200 bg-white p-4">
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-600">Recent Documents</h2>
-        <ul className="space-y-3">
-          {recentDocuments.length === 0 ? (
-            <li className="text-sm text-slate-500">No documents found.</li>
-          ) : (
-            recentDocuments.map((document) => (
-              <li key={document.id} className="rounded border border-slate-100 p-3 text-sm">
-                <p className="font-medium">{document.title}</p>
-                <p className="text-slate-500">{document.dossier.title}</p>
+        <div className="ld-panel p-6">
+          <h3 className="mb-4 text-xl font-bold text-slate-800">Recente activiteiten</h3>
+          <ul className="divide-y divide-slate-200">
+            {recentAudit.map((item) => (
+              <li key={item.id} className="py-3">
+                <p className="text-sm text-slate-800">
+                  <span className="font-semibold">{item.action}</span> {item.entityType.toLowerCase()} · {item.actor?.name ?? user.name}
+                </p>
+                <p className="text-base text-slate-500">{new Date(item.createdAt).toLocaleString("nl-BE")}</p>
               </li>
-            ))
-          )}
-        </ul>
+            ))}
+          </ul>
+        </div>
       </section>
     </div>
   );
