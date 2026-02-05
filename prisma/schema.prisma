@@ -128,6 +128,9 @@ model Dossier {
   timeEntries TimeEntry[]
   documents  Document[]
   aiEvents   AIEvent[]
+
+  @@index([clientId])
+  @@index([ownerUserId])
 }
 
 model Task {
@@ -142,6 +145,8 @@ model Task {
   createdAt     DateTime     @default(now())
 
   dossier       Dossier      @relation(fields: [dossierId], references: [id])
+
+  @@index([dossierId])
 }
 
 model TimeEntry {
@@ -156,6 +161,9 @@ model TimeEntry {
 
   dossier      Dossier   @relation(fields: [dossierId], references: [id])
   user         User      @relation(fields: [userId], references: [id])
+
+  @@index([dossierId])
+  @@index([userId])
 }
 
 model Document {
@@ -169,6 +177,8 @@ model Document {
   createdAt  DateTime       @default(now())
 
   dossier    Dossier        @relation(fields: [dossierId], references: [id])
+
+  @@index([dossierId])
 }
 
 model Template {
@@ -189,6 +199,8 @@ model AIEvent {
   createdAt    DateTime  @default(now())
 
   dossier      Dossier   @relation(fields: [dossierId], references: [id])
+
+  @@index([dossierId])
 }
 
 model AuditLog {
@@ -202,4 +214,6 @@ model AuditLog {
   createdAt   DateTime        @default(now())
 
   actor       User?           @relation("AuditActor", fields: [actorUserId], references: [id])
+
+  @@index([actorUserId])
 }
