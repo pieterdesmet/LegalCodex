@@ -1,12 +1,26 @@
 import Link from "next/link";
+import { AuditEntityType } from "@prisma/client";
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { hasPermission } from "@/lib/rbac";
 
-export default async function SearchPage({ searchParams }: { searchParams: { q?: string } }) {
+export default async function SearchPage({ searchParams }: { searchParams: { q?: string; auditType?: string } }) {
   const user = await requireUser();
 
   const q = searchParams.q?.trim() ?? "";
+  const auditTypeOptions = [
+    "all",
+    AuditEntityType.CLIENT,
+    AuditEntityType.DOSSIER,
+    AuditEntityType.TASK,
+    AuditEntityType.DOCUMENT,
+    AuditEntityType.TIME_ENTRY,
+    AuditEntityType.TEMPLATE
+  ] as const;
+  const auditType =
+    searchParams.auditType && auditTypeOptions.includes(searchParams.auditType as typeof auditTypeOptions[number])
+      ? (searchParams.auditType as typeof auditTypeOptions[number])
+      : "all";
   const canReadClients = hasPermission(user.role, "CLIENT", "READ");
   const canReadDossiers = hasPermission(user.role, "DOSSIER", "READ");
   const canReadTasks = hasPermission(user.role, "TASK", "READ");
@@ -103,9 +117,14 @@ export default async function SearchPage({ searchParams }: { searchParams: { q?:
         canReadAudit
           ? prisma.auditLog.findMany({
           where: {
-            OR: [
-              { entityId: { contains: q, mode: "insensitive" } },
-              { actor: { is: { name: { contains: q, mode: "insensitive" } } } }
+            AND: [
+              auditType !== "all" ? { entityType: auditType } : {},
+              {
+                OR: [
+                  { entityId: { contains: q, mode: "insensitive" } },
+                  { actor: { is: { name: { contains: q, mode: "insensitive" } } } }
+                ]
+              }
             ]
           },
           include: { actor: true },
@@ -123,8 +142,19 @@ export default async function SearchPage({ searchParams }: { searchParams: { q?:
         <p className="mt-1 text-base text-slate-500">Doorzoek de volledige applicatie</p>
       </div>
 
-      <form action="/search" method="get" className="ld-panel p-3">
-        <input name="q" defaultValue={q} placeholder="Zoekterm..." className="ld-input" />
+      <form action="/search" method="get" className="ld-panel flex flex-col gap-3 p-3 md:flex-row">
+        <input name="q" defaultValue={q} placeholder="Zoekterm..." className="ld-input flex-1" />
+        {canReadAudit ? (
+          <select name="auditType" defaultValue={auditType} className="ld-input md:w-56">
+            <option value="all">Audit: alle types</option>
+            <option value={AuditEntityType.CLIENT}>Audit: cliënten</option>
+            <option value={AuditEntityType.DOSSIER}>Audit: dossiers</option>
+            <option value={AuditEntityType.TASK}>Audit: taken</option>
+            <option value={AuditEntityType.DOCUMENT}>Audit: documenten</option>
+            <option value={AuditEntityType.TIME_ENTRY}>Audit: tijd</option>
+            <option value={AuditEntityType.TEMPLATE}>Audit: templates</option>
+          </select>
+        ) : null}
       </form>
 
       {!q ? (
@@ -212,16 +242,18 @@ export default async function SearchPage({ searchParams }: { searchParams: { q?:
             </ul>
           </section>
 
-          <section className="ld-panel p-5 lg:col-span-2">
-            <h2 className="text-lg font-bold text-slate-800">Audit logs ({auditLogs.length})</h2>
-            <ul className="mt-3 space-y-2">
-              {auditLogs.map((item) => (
-                <li key={item.id} className="text-sm text-slate-700">
-                  <span className="font-semibold">{item.action}</span> {item.entityType} ({item.entityId}) · {item.actor?.name ?? "Onbekend"}
-                </li>
-              ))}
-            </ul>
-          </section>
+          {canReadAudit ? (
+            <section className="ld-panel p-5 lg:col-span-2">
+              <h2 className="text-lg font-bold text-slate-800">Audit logs ({auditLogs.length})</h2>
+              <ul className="mt-3 space-y-2">
+                {auditLogs.map((item) => (
+                  <li key={item.id} className="text-sm text-slate-700">
+                    <span className="font-semibold">{item.action}</span> {item.entityType} ({item.entityId}) · {item.actor?.name ?? "Onbekend"}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
         </div>
       )}
     </div>

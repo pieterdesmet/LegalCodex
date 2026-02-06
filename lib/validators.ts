@@ -120,7 +120,7 @@ export const templateUpdateSchema = templateCreateSchema
 
 export const aiAgentRequestSchema = z.object({
   dossierId: z.string().min(1),
-  action: z.enum(["SUMMARY", "SUGGEST_TASKS", "REVIEW_LATEST_DOC", "DEADLINE_SCAN"]),
+  action: z.enum(["SUMMARY", "SUGGEST_TASKS", "REVIEW_LATEST_DOC", "DEADLINE_SCAN", "DASHBOARD_BRIEFING"]),
   documentId: z.string().optional()
 });
 

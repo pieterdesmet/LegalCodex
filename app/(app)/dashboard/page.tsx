@@ -1,8 +1,12 @@
 import Link from "next/link";
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { AITrigger } from "@prisma/client";
 import { addDays } from "@/lib/date";
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { runAIAgent } from "@/lib/ai/service";
+import { hasPermission } from "@/lib/rbac";
 
 function getGreeting(date: Date) {
   const hour = date.getHours();
@@ -132,6 +136,30 @@ export default async function DashboardPage() {
   const suggestionItems = (briefingPayload?.suggestions?.slice(0, 2).map((item) => item.title).filter(Boolean) as string[]) ?? [];
   const briefingItems = [...riskItems, ...taskItems, ...suggestionItems].slice(0, 3);
   const deadlineRiskItems = (deadlinePayload?.risks?.slice(0, 3).map((risk) => risk.title).filter(Boolean) as string[]) ?? [];
+  const briefingDossierId = recentDossiers[0]?.id ?? null;
+  const canRunBriefing = Boolean(briefingDossierId) && hasPermission(user.role, "DOSSIER", "READ");
+
+  async function refreshBriefingAction() {
+    "use server";
+
+    const currentUser = await requireUser();
+    if (!hasPermission(currentUser.role, "DOSSIER", "READ")) {
+      throw new Error("FORBIDDEN");
+    }
+
+    if (!briefingDossierId) {
+      redirect("/dashboard");
+    }
+
+    await runAIAgent({
+      dossierId: briefingDossierId,
+      action: "DASHBOARD_BRIEFING",
+      userId: currentUser.id
+    });
+
+    revalidatePath("/dashboard");
+    redirect("/dashboard");
+  }
 
   return (
     <div className="space-y-6">
@@ -168,7 +196,16 @@ export default async function DashboardPage() {
       <section className="ld-panel px-6 py-5">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-2xl font-bold text-slate-800">AI briefing</h2>
-          <p className="text-xs text-slate-500">Suggestie, nooit automatische beslissing</p>
+          <div className="flex items-center gap-3 text-xs text-slate-500">
+            <p>Suggestie, nooit automatische beslissing</p>
+            {canRunBriefing ? (
+              <form action={refreshBriefingAction}>
+                <button type="submit" className="rounded-lg bg-slate-200 px-3 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-300">
+                  Briefing vernieuwen
+                </button>
+              </form>
+            ) : null}
+          </div>
         </div>
         <p className="mt-3 text-sm text-slate-700">{briefingSummary}</p>
         {briefingItems.length > 0 ? (

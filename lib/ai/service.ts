@@ -9,7 +9,7 @@ import {
 import { prisma } from "@/lib/prisma";
 import { aiOutputSchema } from "@/lib/validators";
 
-export type AIAgentAction = "SUMMARY" | "SUGGEST_TASKS" | "REVIEW_LATEST_DOC" | "DEADLINE_SCAN";
+export type AIAgentAction = "SUMMARY" | "SUGGEST_TASKS" | "REVIEW_LATEST_DOC" | "DEADLINE_SCAN" | "DASHBOARD_BRIEFING";
 
 function buildSystemPrompt(action: AIAgentAction) {
   switch (action) {
@@ -17,6 +17,8 @@ function buildSystemPrompt(action: AIAgentAction) {
       return documentAgentSystemPrompt;
     case "DEADLINE_SCAN":
       return planningAgentSystemPrompt;
+    case "DASHBOARD_BRIEFING":
+      return dossierAgentSystemPrompt;
     default:
       return dossierAgentSystemPrompt;
   }
@@ -32,6 +34,8 @@ function toTrigger(action: AIAgentAction): AITrigger {
       return AITrigger.REVIEW_LATEST_DOC;
     case "DEADLINE_SCAN":
       return AITrigger.DEADLINE_SCAN;
+    case "DASHBOARD_BRIEFING":
+      return AITrigger.DASHBOARD_BRIEFING;
   }
 }
 
