@@ -8,7 +8,7 @@ type DossierOption = {
   title: string;
 };
 
-export function FloatingTimerButton({ dossiers }: { dossiers: DossierOption[] }) {
+export function FloatingTimerButton({ dossiers, disabled }: { dossiers: DossierOption[]; disabled?: boolean }) {
   const pathname = usePathname();
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -16,7 +16,7 @@ export function FloatingTimerButton({ dossiers }: { dossiers: DossierOption[] })
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  if (pathname.startsWith("/time-tracking")) {
+  if (disabled || pathname.startsWith("/time-tracking")) {
     return null;
   }
 
@@ -47,7 +47,7 @@ export function FloatingTimerButton({ dossiers }: { dossiers: DossierOption[] })
       }
 
       setOpen(false);
-      router.push("/time-tracking");
+      setDossierId("");
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Kon timer niet starten");
