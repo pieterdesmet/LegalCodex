@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 type DossierOption = {
   id: string;
   title: string;
+  label?: string;
 };
 
 type StoredTimerState = {
@@ -81,7 +82,7 @@ export function FloatingTimerButton({
         throw new Error(payload.error ?? "Kon timer niet starten");
       }
 
-      const dossierTitle = dossiers.find((item) => item.id === dossierId)?.title ?? "Dossier";
+      const dossierTitle = dossiers.find((item) => item.id === dossierId)?.label ?? dossiers.find((item) => item.id === dossierId)?.title ?? "Dossier";
       if (payload.id) {
         saveTimerState(userId, {
           dossierId,
@@ -135,7 +136,7 @@ export function FloatingTimerButton({
               <option value="">Selecteer een dossier...</option>
               {dossiers.map((dossier) => (
                 <option key={dossier.id} value={dossier.id}>
-                  {dossier.title}
+                  {dossier.label ?? dossier.title}
                 </option>
               ))}
             </select>

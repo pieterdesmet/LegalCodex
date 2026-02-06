@@ -73,7 +73,15 @@ function formatDuration(ms: number) {
   return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
 }
 
-export function TimerBar({ initialEntry, userId }: { initialEntry: RunningEntry | null; userId: string }) {
+export function TimerBar({
+  initialEntry,
+  userId,
+  canDelete = true
+}: {
+  initialEntry: RunningEntry | null;
+  userId: string;
+  canDelete?: boolean;
+}) {
   const router = useRouter();
   const [now, setNow] = useState(Date.now());
   const [timerState, setTimerState] = useState<StoredTimerState | null>(null);
@@ -504,14 +512,18 @@ export function TimerBar({ initialEntry, userId }: { initialEntry: RunningEntry 
             {modalError ? <p className="mt-3 text-sm text-red-600">{modalError}</p> : null}
 
             <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
-              <button
-                type="button"
-                onClick={deleteSegments}
-                disabled={saving !== null}
-                className="rounded-xl bg-red-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-red-500 disabled:opacity-60"
-              >
-                Verwijderen
-              </button>
+              {canDelete ? (
+                <button
+                  type="button"
+                  onClick={deleteSegments}
+                  disabled={saving !== null}
+                  className="rounded-xl bg-red-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-red-500 disabled:opacity-60"
+                >
+                  Verwijderen
+                </button>
+              ) : (
+                <span />
+              )}
               <div className="flex items-center gap-3">
                 <button
                   type="button"
