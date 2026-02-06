@@ -8,7 +8,42 @@ type DossierOption = {
   title: string;
 };
 
-export function FloatingTimerButton({ dossiers, disabled }: { dossiers: DossierOption[]; disabled?: boolean }) {
+type StoredTimerState = {
+  dossierId: string;
+  dossierTitle: string;
+  description: string;
+  carryMs: number;
+  paused: boolean;
+  sessionId: string;
+  segmentIds: string[];
+  pendingSave?: boolean;
+};
+
+function storageKey(userId: string) {
+  return `ld_timer_${userId}`;
+}
+
+function newSessionId() {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return crypto.randomUUID();
+  }
+  return `session_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+}
+
+function saveTimerState(userId: string, state: StoredTimerState) {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(storageKey(userId), JSON.stringify(state));
+}
+
+export function FloatingTimerButton({
+  dossiers,
+  disabled,
+  userId
+}: {
+  dossiers: DossierOption[];
+  disabled?: boolean;
+  userId: string;
+}) {
   const pathname = usePathname();
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -41,9 +76,23 @@ export function FloatingTimerButton({ dossiers, disabled }: { dossiers: DossierO
         })
       });
 
+      const payload = (await response.json()) as { id?: string; dossierId?: string; description?: string; error?: string };
       if (!response.ok) {
-        const payload = (await response.json()) as { error?: string };
         throw new Error(payload.error ?? "Kon timer niet starten");
+      }
+
+      const dossierTitle = dossiers.find((item) => item.id === dossierId)?.title ?? "Dossier";
+      if (payload.id) {
+        saveTimerState(userId, {
+          dossierId,
+          dossierTitle,
+          description: payload.description ?? "Timer gestart via snelknop",
+          carryMs: 0,
+          paused: false,
+          pendingSave: false,
+          sessionId: newSessionId(),
+          segmentIds: [payload.id]
+        });
       }
 
       setOpen(false);

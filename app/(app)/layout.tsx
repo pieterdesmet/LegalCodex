@@ -36,7 +36,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       <main className="flex-1 px-4 py-6 sm:px-6 lg:px-10 lg:py-8">
         <div>{children}</div>
         <TimerBar initialEntry={timerEntry} userId={user.id} />
-        <FloatingTimerButton dossiers={dossiers} disabled={Boolean(runningEntry)} />
+        <FloatingTimerButton dossiers={dossiers} disabled={Boolean(runningEntry)} userId={user.id} />
       </main>
     </div>
   );
